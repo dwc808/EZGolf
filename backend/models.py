@@ -22,7 +22,7 @@ class Player(db.Model):
     round = db.relationship("Round", back_populates="player")
     score = db.relationship("Score", back_populates="player")
 
-    #will need to add validation etc.
+    # TODO will need to add validation etc.
     
 
 #round table
@@ -32,12 +32,25 @@ class Round(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False, default=datetime.date)
     player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete="CASCADE"), nullable=False)
+    course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete="CASCADE"), nullable=False)
+
+    def __init__(self, date, player_id, course_id):
+        self.date = date
+        self.player_id = player_id
+        self.course_id = course_id
 
     player = db.relationship("Player", back_populates="round")
     course = db.relationship("Course", back_populates="round")
     score = db.relationship("Score", back_populates="round")
 
-    #will need to add validation etc.
+    def format_round(self):
+        return {
+            "date": self.date,
+            "player_id": self.player_id,
+            "course_id": self.course_id
+        }
+
+    # TODO will need to add validation etc.
 
 #course table
 class Course(db.Model):
@@ -46,12 +59,26 @@ class Course(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     course_name = db.Column(db.String(45), nullable=False, unique=True)  #maybe get rid of unique later and let each user make their own courses
     course_location = db.Column(db.String(45), nullable=False)  #town? should you have town and state?
-    round_id = db.Column(db.Integer, db.ForeignKey('round.id', ondelete="CASCADE"), nullable=False)
+    course_holes = db.Column(db.Integer, nullable=False)
 
-    round = db.relationship("Round", back_populates="course")
     hole = db.relationship("Hole", back_populates="course")
+    round = db.relationship("Round", back_populates="course")
     
-    #will need to add validation etc.
+    # TODO will need to add validation etc.
+
+    def __init__(self, name, location, holes):
+        self.course_name = name
+        self.course_location = location
+        self.course_holes = holes
+
+    #format course
+    def format_course(self):
+        return {
+            "id": self.id,
+            "course_name": self.course_name,
+            "course_location": self.course_location,
+            "course_holes": self.course_holes
+        }
 
 #hole table
 class Hole(db.Model):
@@ -63,10 +90,26 @@ class Hole(db.Model):
     length = db.Column(db.Integer, nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete="CASCADE"), nullable=False)
 
+    def __init__(self, hole_number, par, length, course_id):
+        self.hole_number = hole_number
+        self.par = par
+        self.length = length
+        self.course_id = course_id
+
     course = db.relationship("Course", back_populates="hole")
     score = db.relationship("Score", back_populates="hole")
 
-    #will need to add validation etc.
+    #format hole
+    def format_hole(self):
+        return {
+            "id": self.id,
+            "hole_number": self.hole_number,
+            "par": self.par,
+            "length": self.length, 
+            "course_id": self.course_id
+        }
+
+    # TODO will need to add validation etc.
 
 #score table
 class Score(db.Model):
@@ -80,11 +123,30 @@ class Score(db.Model):
     round_id = db.Column(db.Integer, db.ForeignKey('round.id', ondelete="CASCADE"), nullable=False)
     hole_id = db.Column(db.Integer, db.ForeignKey('hole.id', ondelete="CASCADE"), nullable=False)
 
+    def __init__(self, putts, shots_to_green, player_id, round_id, hole_id):
+        self.putts = putts
+        self.shots_to_green = shots_to_green
+        self.strokes = putts+shots_to_green
+        self.player_id = player_id
+        self.round_id = round_id
+        self.hole_id = hole_id
+
     player = db.relationship("Player", back_populates="score")
     round = db.relationship("Round", back_populates="score")
     hole = db.relationship("Hole", back_populates="score")
 
-    #will need to add validation etc.
+    def format_score(self):
+        return {
+            "id": self.id,
+            "putts": self.putts,
+            "shots_to_green": self.shots_to_green, 
+            "strokes": self.strokes,
+            "player_id": self.player_id,
+            "round_id": self.round_id,
+            "hole_id": self.hole_id
+        }
+    
+    # TODO will need to add validation etc.
 
 
     
