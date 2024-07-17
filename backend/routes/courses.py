@@ -13,8 +13,9 @@ def create_course():
     course_name = request.json['course_name']
     course_location = request.json['course_location']
     course_holes = request.json['course_holes']
+    course_par = request.json['course_par']
 
-    course = Course(course_name, course_location, course_holes)
+    course = Course(course_name, course_location, course_holes, course_par)
     db.session.add(course)
     db.session.commit()
 
@@ -41,3 +42,9 @@ def add_holes():
 
     #TODO temporary return - may need to return info for all holes to verify correct input on frontend
     return hole_info
+
+#takes in player_id and returns all courses played with par, location, and personal best score
+@bp.route('/player', methods = ['GET'])     #player id should be the route here
+
+def player_courses():
+    pass

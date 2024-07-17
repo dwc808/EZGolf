@@ -5,8 +5,6 @@ from .models import db
 
 app = Flask(__name__)
 
-
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:xsqu4l1xz9@localhost/EZGolf'
 db.init_app(app)
 

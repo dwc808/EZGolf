@@ -60,16 +60,18 @@ class Course(db.Model):
     course_name = db.Column(db.String(45), nullable=False, unique=True)  #maybe get rid of unique later and let each user make their own courses
     course_location = db.Column(db.String(45), nullable=False)  #town? should you have town and state?
     course_holes = db.Column(db.Integer, nullable=False)
+    course_par = db.Column(db.Integer, nullable=False)
 
     hole = db.relationship("Hole", back_populates="course")
     round = db.relationship("Round", back_populates="course")
     
     # TODO will need to add validation etc.
 
-    def __init__(self, name, location, holes):
+    def __init__(self, name, location, holes, par):
         self.course_name = name
         self.course_location = location
         self.course_holes = holes
+        self.course_par = par
 
     #format course
     def format_course(self):
@@ -77,7 +79,8 @@ class Course(db.Model):
             "id": self.id,
             "course_name": self.course_name,
             "course_location": self.course_location,
-            "course_holes": self.course_holes
+            "course_holes": self.course_holes,
+            "course_par": self.course_par
         }
 
 #hole table
