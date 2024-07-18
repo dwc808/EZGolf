@@ -3,6 +3,7 @@
 from backend import app
 from ..models import db, Round, Score, Player, Course, Hole
 from flask import request, Blueprint
+from sqlalchemy import select, desc
 
 bp = Blueprint('rounds', __name__, url_prefix='/rounds')
 
@@ -43,4 +44,14 @@ def enter_scores():
 
 @bp.route('/history', methods = ['GET'])
 def round_history():
+
+    #retrieve last ten rounds for player
+    statement = select(Round).order_by(desc(Round.date)).limit(10)
+
+    result = db.session.execute(statement).scalars()
+    print(result)
+    round_history = [row.format_round() for row in result]
+
+    return round_history
+
     
