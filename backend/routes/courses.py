@@ -1,8 +1,9 @@
 #blueprint for courses and holes
 
 from backend import app
-from ..models import db, Course, Hole
+from ..models import db, Course, Hole, Round, Player, Score
 from flask import request, Blueprint
+from sqlalchemy import select, func
 
 bp = Blueprint('courses', __name__, url_prefix='/courses')
 
@@ -47,4 +48,30 @@ def add_holes():
 @bp.route('/player', methods = ['GET'])     #player id should be the route here
 
 def player_courses():
-    pass
+    
+    #subquery and statement to retrieve courses/info
+    subq = select(Round.course_id).where(Round.player_id == 1)
+    statement = select(Course.id,Course.course_name,Course.course_location,Course.course_par).where(Course.id.in_(subq))
+
+    courses = {}
+
+    #fills courses played by player - name, location, par
+    for row in db.session.execute(statement):
+        courses[row[0]] = {"course_name": row[1],
+                           "course_location": row[2],
+                           "course_par": row[3]}
+
+    #iterate over course ids to run queries for best score
+    for key in courses.keys():
+
+        #subquery and statement to retrieve personal record for each course
+        subq2 = select(func.sum(Score.strokes).label('total')).\
+                    join(Round, Round.id == Score.round_id).\
+                    where(Round.player_id == 1, Round.course_id == key).\
+                    group_by(Round.id)
+        statement2 = select(func.min(subq2.c.total))
+        
+        #adds the personal record for each course
+        courses[key]["course_pr"] = db.session.execute(statement2).scalar()
+
+    return courses

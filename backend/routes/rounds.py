@@ -41,4 +41,6 @@ def enter_scores():
 
     return score_info
 
+@bp.route('/history', methods = ['GET'])
+def round_history():
     
