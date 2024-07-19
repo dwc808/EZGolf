@@ -3,7 +3,7 @@
 from backend import app
 from ..models import db, Course, Hole, Round, Player, Score
 from flask import request, Blueprint
-from sqlalchemy import select, func
+from sqlalchemy import select, func, and_
 
 bp = Blueprint('courses', __name__, url_prefix='/courses')
 
@@ -75,3 +75,35 @@ def player_courses():
         courses[key]["course_pr"] = db.session.execute(statement2).scalar()
 
     return courses
+
+@bp.route('/course_history', methods = ['POST'])
+def course_history():
+    #TODO - should this just take in ID, and load rest, or does it make sense
+    # to just pass info you already have back and forth?
+    #course overview
+    #retrieve course id, name, location, par from front, return with records
+    id = request.json['id']
+    player_id = request.json['player_id']
+    name = request.json['name']
+    location = request.json['location']
+    par = request.json['par']
+    pr = request.json['pr']
+   
+    #retrieve hole ids, numbers
+    statement = select(Hole.id, Hole.hole_number).where(Hole.course_id == id)
+
+    holes = {}
+
+    for row in db.session.execute(statement):
+        holes[row[0]] = {"hole_number": row[1]}
+
+    #retrieve best score for each hole, add to dict
+    for key in holes.keys():
+        subq = select(Score.strokes).where(and_(Score.player_id == 1, Score.hole_id == key))
+        statement_2 = select(func.min(subq.c.strokes))
+
+        holes[key]["hole_pr"] = db.session.execute(statement_2).scalar()
+
+    #retrieve all rounds played on this course by player (date, score)
+
+    statement = select(Round.date, func_sum(Score.strokes))

@@ -49,7 +49,7 @@ def round_history():
     statement = select(Round).order_by(desc(Round.date)).limit(10)
 
     result = db.session.execute(statement).scalars()
-    print(result)
+    
     round_history = [row.format_round() for row in result]
 
     return round_history
