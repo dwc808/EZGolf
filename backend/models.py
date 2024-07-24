@@ -1,11 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+from backend import app, db
 
-db = SQLAlchemy()
 
-#player table
-class Player(db.Model):
-    __tablename__ = 'player'
+#user table
+class User(db.Model):
+    __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
@@ -19,10 +19,8 @@ class Player(db.Model):
         self.name = name
 
     #relationships
-    round = db.relationship("Round", back_populates="player")
-    score = db.relationship("Score", back_populates="player")
-
-    # TODO will need to add validation etc.
+    round = db.relationship("Round", back_populates="user")
+    score = db.relationship("Score", back_populates="user")
     
 
 #round table
@@ -31,22 +29,22 @@ class Round(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     date = db.Column(db.Date, nullable=False, default=datetime.date)
-    player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id', ondelete="CASCADE"), nullable=False)
 
-    def __init__(self, date, player_id, course_id):
+    def __init__(self, date, user_id, course_id):
         self.date = date
-        self.player_id = player_id
+        self.user_id = user_id
         self.course_id = course_id
 
-    player = db.relationship("Player", back_populates="round")
+    user = db.relationship("user", back_populates="round")
     course = db.relationship("Course", back_populates="round")
     score = db.relationship("Score", back_populates="round")
 
     def format_round(self):
         return {
             "date": self.date,
-            "player_id": self.player_id,
+            "user_id": self.user_id,
             "course_id": self.course_id
         }
 
@@ -122,19 +120,19 @@ class Score(db.Model):
     putts = db.Column(db.Integer, nullable=False)
     shots_to_green = db.Column(db.Integer, nullable=False)
     strokes = db.Column(db.Integer, nullable=False)
-    player_id = db.Column(db.Integer, db.ForeignKey('player.id', ondelete="CASCADE"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete="CASCADE"), nullable=False)
     round_id = db.Column(db.Integer, db.ForeignKey('round.id', ondelete="CASCADE"), nullable=False)
     hole_id = db.Column(db.Integer, db.ForeignKey('hole.id', ondelete="CASCADE"), nullable=False)
 
-    def __init__(self, putts, shots_to_green, player_id, round_id, hole_id):
+    def __init__(self, putts, shots_to_green, user_id, round_id, hole_id):
         self.putts = putts
         self.shots_to_green = shots_to_green
         self.strokes = putts+shots_to_green
-        self.player_id = player_id
+        self.user_id = user_id
         self.round_id = round_id
         self.hole_id = hole_id
 
-    player = db.relationship("Player", back_populates="score")
+    user = db.relationship("User", back_populates="score")
     round = db.relationship("Round", back_populates="score")
     hole = db.relationship("Hole", back_populates="score")
 
@@ -144,12 +142,9 @@ class Score(db.Model):
             "putts": self.putts,
             "shots_to_green": self.shots_to_green, 
             "strokes": self.strokes,
-            "player_id": self.player_id,
+            "user_id": self.user_id,
             "round_id": self.round_id,
             "hole_id": self.hole_id
         }
     
     # TODO will need to add validation etc.
-
-
-    

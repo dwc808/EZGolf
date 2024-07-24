@@ -1,15 +1,15 @@
 #blueprint for courses and holes
 
 from backend import app
-from ..models import db, Course, Hole, Round, Player, Score
+from ..models import Course, Hole, Round, User, Score
 from flask import request, Blueprint
 from sqlalchemy import select, func, and_
+
 
 bp = Blueprint('courses', __name__, url_prefix='/courses')
 
 #creates a new course and returns the course info for the addition of holes
 @bp.route('/create', methods = ['POST'])
-#create a new course
 def create_course():
     course_name = request.json['course_name']
     course_location = request.json['course_location']
@@ -80,6 +80,7 @@ def player_courses():
 def course_history():
     #TODO - should this just take in ID, and load rest, or does it make sense
     # to just pass info you already have back and forth?
+
     #course overview
     #retrieve course id, name, location, par from front, return with records
     id = request.json['id']
@@ -105,5 +106,17 @@ def course_history():
         holes[key]["hole_pr"] = db.session.execute(statement_2).scalar()
 
     #retrieve all rounds played on this course by player (date, score)
+    statement_3 = select(Round.date, func.sum(Score.strokes)).join_from(Round, Score).where(and_(Round.player_id == 1, Round.course_id == id)).group_by(Round.id)
 
-    statement = select(Round.date, func_sum(Score.strokes))
+    rounds = {}
+
+    for row in db.session.execute(statement_3):
+        rounds[str(row[0])] = row[1]
+
+
+    #combine rounds and holes dictionaries to return
+    combined = {}
+    combined["rounds"] = rounds
+    combined["holes"] = holes
+
+    return combined

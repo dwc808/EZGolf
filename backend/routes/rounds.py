@@ -1,7 +1,6 @@
 #blueprint for rounds and scores
-
 from backend import app
-from ..models import db, Round, Score, Player, Course, Hole
+from ..models import Round, Score, User, Course, Hole
 from flask import request, Blueprint
 from sqlalchemy import select, desc
 
