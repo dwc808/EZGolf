@@ -8,15 +8,15 @@ class User(db.Model):
     __tablename__ = 'user'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
+    fname = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(255), nullable=False, unique=True)
     stored_password = db.Column(db.String(255), nullable=False)
 
     def __repr__(self):
-        return f"{self.name}"
+        return f"{self.fname}"
     
-    def __init__(self, name):
-        self.name = name
+    def __init__(self, fname):
+        self.fname = fname
 
     #relationships
     round = db.relationship("Round", back_populates="user")
