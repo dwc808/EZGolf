@@ -12,7 +12,6 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:xsqu4l1xz9@localh
 db.init_app(app)
 migrate = Migrate(app, db)
 
-
 from .routes import courses
 app.register_blueprint(courses.bp)
 

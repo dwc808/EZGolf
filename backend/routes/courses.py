@@ -1,12 +1,12 @@
 #blueprint for courses and holes
 
-from backend import app
+from backend import app, db
 from ..models import Course, Hole, Round, User, Score
 from flask import request, Blueprint
 from sqlalchemy import select, func, and_
 
 
-bp = Blueprint('courses', __name__, url_prefix='/courses')
+bp = Blueprint('/courses', __name__, url_prefix='/courses')
 
 #creates a new course and returns the course info for the addition of holes
 @bp.route('/create', methods = ['POST'])
@@ -44,18 +44,18 @@ def add_holes():
     #TODO temporary return - may need to return info for all holes to verify correct input on frontend
     return hole_info
 
-#takes in player_id and returns all courses played with par, location, and personal best score
-@bp.route('/player', methods = ['GET'])     #player id should be the route here
+#takes in user_id and returns all courses played with par, location, and personal best score
+@bp.route('/user', methods = ['GET'])     #user id should be the route here
 
-def player_courses():
+def user_courses():
     
     #subquery and statement to retrieve courses/info
-    subq = select(Round.course_id).where(Round.player_id == 1)
+    subq = select(Round.course_id).where(Round.user_id == 1)
     statement = select(Course.id,Course.course_name,Course.course_location,Course.course_par).where(Course.id.in_(subq))
 
     courses = {}
 
-    #fills courses played by player - name, location, par
+    #fills courses played by user - name, location, par
     for row in db.session.execute(statement):
         courses[row[0]] = {"course_name": row[1],
                            "course_location": row[2],
@@ -67,7 +67,7 @@ def player_courses():
         #subquery and statement to retrieve personal record for each course
         subq2 = select(func.sum(Score.strokes).label('total')).\
                     join(Round, Round.id == Score.round_id).\
-                    where(Round.player_id == 1, Round.course_id == key).\
+                    where(Round.user_id == 1, Round.course_id == key).\
                     group_by(Round.id)
         statement2 = select(func.min(subq2.c.total))
         
@@ -84,7 +84,7 @@ def course_history():
     #course overview
     #retrieve course id, name, location, par from front, return with records
     id = request.json['id']
-    player_id = request.json['player_id']
+    user_id = request.json['user_id']
     name = request.json['name']
     location = request.json['location']
     par = request.json['par']
@@ -100,13 +100,13 @@ def course_history():
 
     #retrieve best score for each hole, add to dict
     for key in holes.keys():
-        subq = select(Score.strokes).where(and_(Score.player_id == 1, Score.hole_id == key))
+        subq = select(Score.strokes).where(and_(Score.user_id == 1, Score.hole_id == key))
         statement_2 = select(func.min(subq.c.strokes))
 
         holes[key]["hole_pr"] = db.session.execute(statement_2).scalar()
 
-    #retrieve all rounds played on this course by player (date, score)
-    statement_3 = select(Round.date, func.sum(Score.strokes)).join_from(Round, Score).where(and_(Round.player_id == 1, Round.course_id == id)).group_by(Round.id)
+    #retrieve all rounds played on this course by user (date, score)
+    statement_3 = select(Round.date, func.sum(Score.strokes)).join_from(Round, Score).where(and_(Round.user_id == 1, Round.course_id == id)).group_by(Round.id)
 
     rounds = {}
 

@@ -1,5 +1,5 @@
 #blueprint for rounds and scores
-from backend import app
+from backend import app, db
 from ..models import Round, Score, User, Course, Hole
 from flask import request, Blueprint
 from sqlalchemy import select, desc
@@ -10,10 +10,10 @@ bp = Blueprint('rounds', __name__, url_prefix='/rounds')
 @bp.route('/new', methods = ['POST'])
 def add_round():
     date = request.json['date']
-    player_id = request.json['player_id']
+    user_id = request.json['user_id']
     course_id = request.json['course_id']
 
-    round = Round(date, player_id, course_id)
+    round = Round(date, user_id, course_id)
     db.session.add(round)
     db.session.commit()
 
@@ -29,11 +29,11 @@ def enter_scores():
     for score in scores:
         putts = score['putts']
         shots_to_green = score['shots_to_green']
-        player_id = score['player_id']
+        user_id = score['user_id']
         round_id = score['round_id']
         hole_id = score['hole_id']
 
-        add_score = Score(putts, shots_to_green, player_id, round_id, hole_id)
+        add_score = Score(putts, shots_to_green, user_id, round_id, hole_id)
         db.session.add(add_score)
         db.session.commit()
 
@@ -44,7 +44,7 @@ def enter_scores():
 @bp.route('/history', methods = ['GET'])
 def round_history():
 
-    #retrieve last ten rounds for player
+    #retrieve last ten rounds for user
     statement = select(Round).order_by(desc(Round.date)).limit(10)
 
     result = db.session.execute(statement).scalars()

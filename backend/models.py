@@ -37,7 +37,7 @@ class Round(db.Model):
         self.user_id = user_id
         self.course_id = course_id
 
-    user = db.relationship("user", back_populates="round")
+    user = db.relationship("User", back_populates="round")
     course = db.relationship("Course", back_populates="round")
     score = db.relationship("Score", back_populates="round")
 
